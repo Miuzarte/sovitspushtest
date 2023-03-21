@@ -102,6 +102,10 @@ def pad_array(arr, target_length):
         pad_right = pad_width - pad_left
         padded_arr = np.pad(arr, (pad_left, pad_right), 'constant', constant_values=(0, 0))
         return padded_arr
+    
+def split_list_by_n(list_collection, n, pre=0):
+    for i in range(0, len(list_collection), n):
+        yield list_collection[i-pre if i-pre>=0 else i: i + n]
 
 
 class Svc(object):
@@ -167,7 +171,10 @@ class Svc(object):
               cluster_infer_ratio=0,
               auto_predict_f0=False,
               noice_scale=0.4):
-        speaker_id = self.spk2id[speaker]
+        speaker_id = self.spk2id.__dict__.get(speaker)
+        if not speaker_id and type(speaker) is int:
+            if len(self.spk2id.__dict__) >= speaker:
+                speaker_id = speaker
         sid = torch.LongTensor([int(speaker_id)]).to(self.dev).unsqueeze(0)
         c, f0, uv = self.get_unit_f0(raw_path, tran, cluster_infer_ratio, speaker)
         if "half" in self.net_g_path and torch.cuda.is_available():
@@ -178,6 +185,10 @@ class Svc(object):
             use_time = time.time() - start
             print("vits use time:{}".format(use_time))
         return audio, audio.shape[-1]
+    
+    def clear_empty(self):
+        # 清理显存
+        torch.cuda.empty_cache()
 
     def slice_inference(self,raw_audio_path, spk, tran, slice_db,cluster_infer_ratio, auto_predict_f0,noice_scale, pad_seconds=0.5):
         wav_path = raw_audio_path

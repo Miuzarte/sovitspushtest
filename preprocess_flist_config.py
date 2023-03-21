@@ -7,7 +7,7 @@ from random import shuffle
 import json
 import wave
 
-config_template = json.load(open("configs/config.json"))
+config_template = json.load(open("configs_template/config_template.json"))
 
 pattern = re.compile(r'^[\.a-zA-Z0-9_\/]+$')
 
@@ -78,6 +78,8 @@ if __name__ == "__main__":
             f.write(wavpath + "\n")
 
     config_template["spk"] = spk_dict
+    config_template["model"]["n_speakers"] = spk_id
+	
     print("Writing configs/config.json")
     with open("configs/config.json", "w") as f:
         json.dump(config_template, f, indent=2)
